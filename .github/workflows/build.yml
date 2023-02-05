@@ -69,9 +69,9 @@ jobs:
           path: C:\Users\runneradmin\Documents\PowerShell\Modules\CareLink\
           
       # publish to PowerShell Gallery
-      #- name: publish to PowerShell Gallery
-      #  run: |
-      #    Write-Output "Publishing to PowerShell Gallery"
-      #    Import-Module "C:\Users\runneradmin\Documents\PowerShell\Modules\CareLink\CareLink.psd1"
-      #    Get-Module CareLink
-      #    Publish-Module -Name "CareLink" -NuGetApiKey ${{secrets.CARELINKPWSHGALLERYKEY}} -LicenseUri "https://github.com/AdhocAdam/CareLink/blob/main/LICENSE"
+      - name: publish to PowerShell Gallery
+        run: |
+          Write-Output "Publishing to PowerShell Gallery"
+          Import-Module "C:\Users\runneradmin\Documents\PowerShell\Modules\CareLink\CareLink.psd1"
+          Get-Module CareLink
+          Publish-Module -Name "CareLink" -NuGetApiKey ${{secrets.CARELINKPWSHGALLERYKEY}} -LicenseUri "https://github.com/AdhocAdam/CareLink/blob/main/LICENSE"
