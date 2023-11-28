@@ -16,7 +16,8 @@ This module is compatible with PowerShell 5.1 and up. It has been tested and con
 
 | Cmdlet                |    Purpose    |
 | --------------------- | ------------- |
-| Get-CareLinkToken     | Authenticates to Carelink using your username/password  |
+| Get-CareLinkToken     | Retrieves the token currently in use  |
+| Set-CareLinkToken     | Sets the token and expiration date to use in subsequent cmdlets  |
 | Confirm-CareLinkToken | Used by other functions to confirm your authentication to Carelink is still valid |
 | Get-CareLinkAccount   | Retrieves information about your account such as login date, account id, and user role |
 | Get-CareLinkProfile   | Retrieves information about your profile such as username, phone number, email, etc. |
