@@ -224,27 +224,74 @@ function Get-CareLinkData {
 }
 
 function Confirm-CareLinkToken {
-    param (
-        #The Carelink token to validate
-        [parameter(Mandatory = $true, Position = 0)]
-        [PSCustomObject]$Token
-    )
+  <#
+    .SYNOPSIS
+        Confirms the Carelink token's validity
+    .DESCRIPTION
+        Used by other cmdlets within the module to verify the token being used to retrieve data from Carelink is valid. Can be used independently to verify a token's validity.
+    .EXAMPLE
+        Confirm-CareLinkToken
+  #>
 
+  <#
+  param (
+    #The Carelink token to validate
+    [parameter(Mandatory = $true, Position = 0)]
+    [PSCustomObject]$Token
+  )
+  #>
+
+  if ($script:CareLinkToken) {
     #convert the token expiration string to a datetime object to compare
     #string/datetime conversion, https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-powershell-1.0/ee692801(v=technet.10)?redirectedfrom=MSDN
-    $expiration = [datetime]::ParseExact($token.TokenExpiration.Value.Split("UTC")[0].Trim(), "ddd MMM dd HH:mm:ss", $null)
+    $expiration = [datetime]::ParseExact($script:CareLinkToken.Expiration.Split("UTC")[0].Trim(), "ddd MMM dd HH:mm:ss", $null)
     $nowUTC = (Get-Date).ToUniversalTime()
 
-    #compare the expiration date to now
-    if ($nowUTC -gt $expiration)
-    {
-        Write-Output "Token expired. Renewing..."
-        $newToken = Get-CareLinkToken -username $token.username -password $token.password
-        return $newToken
+    #compare the expiration date to now, by adding a minute we know if we're within expiration
+    if ($nowUTC -gt $expiration) {
+      Write-Warning "Token expiring. Renewing..."
+
+      #request a new token with the current token
+      $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+      $session.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+      $session.Cookies.Add((New-Object System.Net.Cookie("auth_tmp_token", "$($script:CareLinkToken.token)", "/", "carelink.minimed.com")))
+      $session.Cookies.Add((New-Object System.Net.Cookie("c_token_valid_to", "$($script:CareLinkToken.expiration)", "/", "carelink.minimed.com")))
+      $session.Cookies.Add((New-Object System.Net.Cookie("application_country", "us", "/", "carelink.minimed.com")))
+      $session.Cookies.Add((New-Object System.Net.Cookie("application_language", "en", "/", "carelink.minimed.com")))
+      $renewedToken = Invoke-WebRequest -UseBasicParsing -ContentType "application/json; charset=UTF-8" -Uri "https://carelink.minimed.com/patient/sso/reauth" `
+        -Method "POST" `
+        -WebSession $session `
+        -Headers @{
+        "Accept"             = "application/json, text/plain, */*"
+        "Accept-Encoding"    = "gzip, deflate, br"
+        "Accept-Language"    = "en-US,en;q=0.9"
+        "Authorization"      = "Bearer $($script:CareLinkToken.token)"
+        "Origin"             = "https://carelink.minimed.com"
+        "Referer"            = "https://carelink.minimed.com/app/connect"
+        "Sec-Fetch-Dest"     = "empty"
+        "Sec-Fetch-Mode"     = "cors"
+        "Sec-Fetch-Site"     = "same-origin"
+        "sec-ch-ua"          = "`"Google Chrome`";v=`"119`", `"Chromium`";v=`"119`", `"Not?A_Brand`";v=`"24`""
+        "sec-ch-ua-mobile"   = "?0"
+        "sec-ch-ua-platform" = "`"Windows`""
+      }
+
+      #define token object to return from the Headers in the response
+      $updatedToken = [PSCustomObject]@{
+        Expiration = ($renewedToken.Headers.'Set-Cookie'.Split(';') | Where-Object { $_.StartsWith("c_token_valid_to") }).Split('=')[1]
+        Token      = ($renewedToken.Headers.'Set-Cookie'.Split(';') | Where-Object { $_.StartsWith("auth_tmp_token") }).Split('=')[1]
+        Headers    = $renewedToken.Headers
+      }
+
+      #update the token used within the module's scope
+      Set-CareLinkToken -Expiration $updatedToken.Expiration -Token $updatedToken.Token
     }
-    else
-    {
-        Write-Output "Token valid"
-        return $token
+    else {
+      Write-Output "Token valid"
+      return $true
     }
+  }
+  else {
+    Write-Error "Token is not defined. Please retrieve a token, expiration date, and then set it with Set-CareLinkToken"
+  }
 }
