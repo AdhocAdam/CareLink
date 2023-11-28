@@ -295,3 +295,32 @@ function Confirm-CareLinkToken {
     Write-Error "Token is not defined. Please retrieve a token, expiration date, and then set it with Set-CareLinkToken"
   }
 }
+
+function Set-CareLinkToken {
+  <#
+    .SYNOPSIS
+        Set the Carelink Token and Expiration values
+    .DESCRIPTION
+        In order to retrieve data from carelink, you must authenticate with a browser so as to retrieve a valid Token ("auth_tmp_token") and
+        Token Expiration Date ("c_token_valid_to").
+
+        For example, using Dev Tools, copy the Token and Token Expiration date out. Using this cmdlet, you can set those values.
+    .EXAMPLE
+        Set-CareLinkToken -Expiration "Fri Nov 20 19:17:44 UTC 2023" -Token "c7822ebd1d9bf24609b7..."
+  #>
+
+  param (
+    #The Expiration DateTime of the token. For example, Mon Nov 20 01:36:04 UTC 2023
+    [parameter(Mandatory = $true, Position = 0)]
+    [string]$Expiration,
+    #The token to use when making calls to retrieve data, and request new tokens
+    [parameter(Mandatory = $true, Position = 1)]
+    [string]$Token
+  )
+
+  #set the carelink token variable to use within the module
+  $script:CarelinkToken = [PSCustomObject]@{
+    Expiration = "$Expiration"
+    Token      = "$Token"
+  }
+}
