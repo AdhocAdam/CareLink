@@ -35,39 +35,28 @@ Install-Module -Name CareLink
 
 ## Authenticate to CareLink
 
-This cmdlet can be used one of two ways to sign into CareLink.
-1. Enter your username and password as values to the Get-CareLinkToken cmdlet. Then store this in a variable, for example called $token.
+In order to retrieve data, you must first obtain an access token and its expiration date. One means of doing this is:
+1. Open a browser
+2. Log into CareLink
+3. Push F12 to open up Developer Tools and navigate to the Network Tab
+4. Then in CareLink navigate to Data Connect to view your live glucose data
+5. In the list of calls made in the Network tab, filter down for one called "message"
+
+Inspect the Headers to copy out the Token and the Token's Expiration Date. You're looking for values that correspond with "c_token_valid_to" and "auth_tmp_token". Then paste them into the following cmdlet.
 
 ```powershell
-$token = Get-CareLinkToken -username "???????" -password "????????"
-```
-It should be noted that entering credentials in plaintext within a script 100% violates PowerShell best practices. To curb this, it's recommended to use the PowerShell Secrets module to safely store and consume credentials on your computer. Installing and use is simple:
-```powershell
-#install the module, only need to do this once
-Install-Module -Name Microsoft.PowerShell.SecretManagement -Repository PSGallery
-#store the password. You can run the identical cmdlet every time you ever want to update the value
-Set-Secret -Name "CarelinkPW"
-
-#consume the secret
-$carelinkpassword = Get-Secret -Name "CarelinkPW" -AsPlainText
-$token = Get-CareLinkToken -username "???????" -password "$carelinkpassword"
+Set-CareLinkToken -Expiration "Fri Nov 20 19:17:44 UTC 2023" -Token "c7822ebd1d9bf24609b7..."
 ```
 
-or
-
-2. Use of a PSCredential. This will prompt you to enter credentials everytime.
-```powershell
-$creds = Get-Credential
-$token = Get-CareLinkToken -credential $creds
-```
+Tokens are good for approximatley 40 minutes
 
 ## Get account/profile details
 
 Once you have a token, use it with subsequent cmdlets to retrieve more information such as your Account and Profile information. You'll ultimately need these to access your sugar data.
 
 ```powershell
-$account = Get-CarelinkAccount -token $token
-$userProfile = Get-CarelinkProfile -token $token
+$account = Get-CarelinkAccount
+$userProfile = Get-CarelinkProfile
 ```
 
 ## Retrieve last sugar, last 24 hours of sugar, device serial number, etc.
@@ -75,7 +64,7 @@ $userProfile = Get-CarelinkProfile -token $token
 Using the $token, $account, and $userProfile variables. Pass them as values to the Get-CareLinkData cmdlet to retrieve pertinent information. Save the entire object to a variable such as $data to explore.
 
 ```powershell
-$data = Get-CarelinkData -Token $token -CarelinkUserAccount $account -CarelinkUserProfile $userProfile
+$data = Get-CarelinkData -CarelinkUserAccount $account -CarelinkUserProfile $userProfile
 ```
 
 ## PowerShell ISE/VSCode exploration
