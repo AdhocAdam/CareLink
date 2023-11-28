@@ -130,30 +130,37 @@ function Get-CareLinkAccount {
 
 #retrieve user profile information, username, phone number, etc.
 function Get-CareLinkProfile {
-    param (
-        #The Carelink username
-        [parameter(Mandatory = $true, Position = 0)]
-        [PSCustomObject]$Token
-    )
+  <#
+  param (
+    #The Carelink username
+    [parameter(Mandatory = $true, Position = 0)]
+    [PSCustomObject]$Token
+  )
+  #>
 
+  if ($script:CareLinkToken) {
     #verify the token is still valid before proceding
-    $token = Confirm-CarelinkToken -Token $token
+    $token = Confirm-CarelinkToken -Token $script:CareLinkToken
 
     $authHeader = @{
-        "Accept"          = "application/json, text/plain, */*"
-        "Accept-Encoding" = "gzip, deflate, br"
-        "Accept-Language" = "en-US,en;q=0.6"
-        "Authorization"   = "Bearer $($Token.Token.value)"
-        "Referer"         = "https://carelink.minimed.com/app/home"
-        "Sec-Fetch-Dest"  = "empty"
-        "Sec-Fetch-Mode"  = "cors"
-        "Sec-Fetch-Site"  = "same-origin"
-        "Sec-GPC"         = "1"
-      }
+      "Accept"          = "application/json, text/plain, */*"
+      "Accept-Encoding" = "gzip, deflate, br"
+      "Accept-Language" = "en-US,en;q=0.6"
+      "Authorization"   = "Bearer $($script:CareLinkToken.token)"
+      "Referer"         = "https://carelink.minimed.com/app/home"
+      "Sec-Fetch-Dest"  = "empty"
+      "Sec-Fetch-Mode"  = "cors"
+      "Sec-Fetch-Site"  = "same-origin"
+      "Sec-GPC"         = "1"
+    }
 
     #call the Me rest endpoint
-    $me = Invoke-RestMethod -Uri "https://carelink.minimed.com/patient/users/me/profile" -Method "GET" -header $authHeader -UserAgent $token.userAgent -WebSession $token.websession
+    $me = Invoke-RestMethod -Uri "https://carelink.minimed.com/patient/users/me/profile" -Method "GET" -header $authHeader -UserAgent $token.userAgent #-WebSession $token.websession
     return $me
+  }
+  else {
+    Write-Error "Token is not defined. Please retrieve a token, expiration date, and then set it with Set-CareLinkToken"
+  }
 }
 
 function Get-CareLinkData {
