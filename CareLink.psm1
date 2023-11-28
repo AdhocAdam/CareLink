@@ -164,42 +164,63 @@ function Get-CareLinkProfile {
 }
 
 function Get-CareLinkData {
-    param (
-        #The Carelink username
-        [parameter(Mandatory = $true, Position = 0)]
-        [PSCustomObject]$Token,
-        #The Carelink Account User
-        [parameter(Mandatory = $true, Position = 1)]
-        [PSCustomObject]$CarelinkUserProfile,
-        #The Carelink User's Profile
-        [parameter(Mandatory = $true, Position = 2)]
-        [PSCustomObject]$CarelinkUserAccount
-    )
+  <#
+    .SYNOPSIS
+        Retrieve's a patient's insulin pump information, blood glucose, etc.
+    .DESCRIPTION
+        Used to retrieve information about a patient's insulin pump, blood glucose, active alerts, and other information as reported
+    .EXAMPLE
+        $clAccount = Get-CareLinkAccount
+        $clProfile = Get-CareLinkProfile
+        $data = Get-CareLinkData -CarelinkUserProfile $clProfile -CarelinkUserAccount $clAccount
+        $data
+  #>
 
+  param (
+    <#The Carelink username
+    [parameter(Mandatory = $true, Position = 0)]
+    [PSCustomObject]$Token,
+    #>
+    #The Carelink Account User
+    [parameter(Mandatory = $true, Position = 1)]
+    [PSCustomObject]$CarelinkUserProfile,
+    #The Carelink User's Profile
+    [parameter(Mandatory = $true, Position = 2)]
+    [PSCustomObject]$CarelinkUserAccount
+  )
+
+  if ($script:CareLinkToken) {
     #verify the token is still valid before proceding
-    $token = Confirm-CarelinkToken -Token $token
+    $token = Confirm-CarelinkToken -Token $script:CareLinkToken
 
     #authentication header to make the request
     $authHeader = @{
-        "Accept"          = "application/json, text/plain, */*"
-        "Accept-Encoding" = "gzip, deflate, br"
-        "Accept-Language" = "en-US,en;q=0.6"
-        "Authorization"   = "Bearer $($Token.Token.value)"
-        "Referer"         = "https://carelink.minimed.com/app/home"
-        "Sec-Fetch-Dest"  = "empty"
-        "Sec-Fetch-Mode"  = "cors"
-        "Sec-Fetch-Site"  = "same-origin"
-        "Sec-GPC"         = "1"
-      }
+      "Accept"          = "application/json, text/plain, */*"
+      "Accept-Encoding" = "gzip, deflate, br"
+      "Accept-Language" = "en-US,en;q=0.6"
+      "authorization"   = "Bearer $($script:CareLinkToken.token)"
+      "authority"       = "clcloud.minimed.com"
+      "path"            = "/connect/carepartner/v6/display/message"
+      "origin"          = "https://carelink.minimed.com"
+      "referer"         = "https://carelink.minimed.com/"
+      "Sec-Fetch-Dest"  = "empty"
+      "Sec-Fetch-Mode"  = "cors"
+      "Sec-Fetch-Site"  = "same-origin"
+      "Sec-GPC"         = "1"
+    }
 
     #pump, sensor, and glucose
     $payload = @{
-        "username" = $CarelinkUserProfile.username
-        "role"     = $CarelinkUserAccount.role
+      "username" = $CarelinkUserProfile.username
+      "role"     = $CarelinkUserAccount.role
     } | ConvertTo-Json
 
-  $data = Invoke-RestMethod -Uri "https://clcloud.minimed.com/connect/v2/display/message" -Method "POST" -body $payload -header $authHeader -UserAgent $token.userAgent -WebSession $token.websession
-  return $data
+    $data = Invoke-RestMethod -Uri "https://clcloud.minimed.com/connect/carepartner/v6/display/message" -Method "POST" -Body $payload -header $authHeader #-UserAgent $token.userAgent #-WebSession $token.websession
+    return $data
+  }
+  else {
+    Write-Error "Token is not defined. Please retrieve a token, expiration date, and then set it with Set-CareLinkToken"
+  }
 }
 
 function Confirm-CareLinkToken {
