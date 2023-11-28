@@ -6,7 +6,8 @@ This PowerShell module emulates browser interaction to Minimed CareLink to retri
 #>
 
 function Get-CareLinkToken {
-    param (
+  <#
+      param (
         #The Carelink username
         [parameter(ParameterSetName = 'ManualCred', Mandatory = $true, Position = 0)]
         [string]$username,
@@ -82,6 +83,14 @@ function Get-CareLinkToken {
     }
 
     return $token
+    #>
+
+  if ($script:CarelinkToken) {
+    return $script:CarelinkToken
+  }
+  else {
+    return "Token has not been declared. Use Set-CareLinkToken to define it"
+  }
 }
 
 #retrieve user account information such as their Login Date, Account ID, and User Role
