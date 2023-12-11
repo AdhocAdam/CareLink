@@ -34,7 +34,7 @@ jobs:
           {
               #regular, change the version and remove the pre-release block from the manifest
               Write-Output "Performing regular build..."
-              (Get-Content -Path '.\CareLink.psd1') -replace '1.0', $newVersionString | Set-Content -Path '.\CareLink.psd1'
+              (Get-Content -Path '.\CareLink.psd1') -replace '2.0', $newVersionString | Set-Content -Path '.\CareLink.psd1'
           }
           else
           {
@@ -42,7 +42,7 @@ jobs:
               Write-Output "Performing pre-release build..."
               $alphaVersion = "-" + "alpha" + $newVersion.Revision.ToString()
               $newVersionString = $newVersion.Major.ToString() + "." + $newVersion.Minor.ToString() + "." + $newVersion.Build.ToString()
-              (Get-Content -Path '.\CareLink.psd1') -replace '1.0', $newVersionString | Set-Content -Path '.\CareLink.psd1'
+              (Get-Content -Path '.\CareLink.psd1') -replace '2.0', $newVersionString | Set-Content -Path '.\CareLink.psd1'
               
               #prep the PrivateData section, then set the pre-release version
               Update-ModuleManifest -Path ".\CareLink.psd1"
