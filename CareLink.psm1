@@ -105,7 +105,7 @@ function Get-CareLinkAccount {
 
   if ($script:CareLinkToken) {
     #verify the token is still valid before proceding
-    $token = Confirm-CarelinkToken -Token $script:CareLinkToken
+    $token = Confirm-CarelinkToken
 
     $authHeader = @{
       "Accept"          = "application/json, text/plain, */*"
@@ -140,7 +140,7 @@ function Get-CareLinkProfile {
 
   if ($script:CareLinkToken) {
     #verify the token is still valid before proceding
-    $token = Confirm-CarelinkToken -Token $script:CareLinkToken
+    $token = Confirm-CarelinkToken
 
     $authHeader = @{
       "Accept"          = "application/json, text/plain, */*"
@@ -191,7 +191,7 @@ function Get-CareLinkData {
 
   if ($script:CareLinkToken) {
     #verify the token is still valid before proceding
-    $token = Confirm-CarelinkToken -Token $script:CareLinkToken
+    $token = Confirm-CarelinkToken
 
     #authentication header to make the request
     $authHeader = @{
