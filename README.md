@@ -52,7 +52,7 @@ Tokens are good for approximatley 40 minutes
 
 ## Get account/profile details
 
-Once you have a token, use it with subsequent cmdlets to retrieve more information such as your Account and Profile information. You'll ultimately need these to access your sugar data.
+Once you have set a token, you can execute the following cmdlets to retrieve more information such as your Account and Profile information. You'll ultimately need these to access your sugar data.
 
 ```powershell
 $account = Get-CarelinkAccount
@@ -61,7 +61,7 @@ $userProfile = Get-CarelinkProfile
 
 ## Retrieve last sugar, last 24 hours of sugar, device serial number, etc.
 
-Using the $token, $account, and $userProfile variables. Pass them as values to the Get-CareLinkData cmdlet to retrieve pertinent information. Save the entire object to a variable such as $data to explore.
+Using the $account and $userProfile variables from above. Pass them as values to the Get-CareLinkData cmdlet to retrieve pertinent information. Save the entire object to a variable such as $data to explore.
 
 ```powershell
 $data = Get-CarelinkData -CarelinkUserAccount $account -CarelinkUserProfile $userProfile
@@ -77,18 +77,27 @@ In VSCode you either use CTRL+N to open a new tab/file, or just head over to Fil
 
 ![image](https://user-images.githubusercontent.com/6636040/216783020-cc6de797-0430-48c8-978d-f1891b4a2ed7.png)
 
-If you want to interrogate a specific data point, just add a "." to the end of data to grab specific data points. For example:
-- $data.sgs
+If you want to interrogate a specific data point, just add a "." to the end of $data to grab specific data points. For example:
+- $data.lastSG
 - $data.timeFormat
 
 or if you prefer, you can also use the PowerShell pipeline:
 ```powershell
-$data | Select-Object sgs, timeFormat, markers
+$data | Select-Object lastSG, lastSGTrend, activeInsulin, timeFormat, markers
 ```
 
 ## Filter the sugars
 
+There are two relevant sugar datapoints:
+- .lastSG represents the most recent reading, as a single object, updated every 5 minutes from the last reading
+- .sgs represents an array of sugar objects, and will also contain the most recent reading updated every 5 minutes from the last reading
+
 If you were to use $data.sgs, you'd return a list of sugar objects from oldest to most recent. Using PowerShell, we can filter this down such as the last 10 readings, most recent reading, readings with a range, etc.
+
+## The last reading
+```powershell
+$data.lastSG
+```
 
 ## The last reading(s)
 ```powershell
